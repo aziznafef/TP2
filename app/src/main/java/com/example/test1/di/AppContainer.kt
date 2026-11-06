@@ -1,10 +1,12 @@
+
 package com.example.test1.di
 
-
-
-
 import com.example.test1.data.remote.PatientApi
+import com.example.test1.data.remote.ConsultationApi
+
 import com.example.test1.data.repository.PatientRepository
+import com.example.test1.data.repository.ConsultationRepository
+
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -13,17 +15,20 @@ import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import java.util.concurrent.TimeUnit
 
-// Émulateur : 10.0.2.2 — Téléphone réel : IP du PC
 private const val BASE_URL = "http://10.0.2.2:5000/api/"
 
 class AppContainer {
-    // Ignore unknown JSON fields like createdAt, updatedAt
-    private val json = Json { ignoreUnknownKeys = true }
+
+    private val json = Json {
+        ignoreUnknownKeys = true
+    }
 
     private val okHttpClient = OkHttpClient.Builder()
-        .addInterceptor(HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
-        })
+        .addInterceptor(
+            HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            }
+        )
         .connectTimeout(10, TimeUnit.SECONDS)
         .build()
 
@@ -31,12 +36,21 @@ class AppContainer {
         .baseUrl(BASE_URL)
         .client(okHttpClient)
         .addConverterFactory(
-            json.asConverterFactory("application/json".toMediaType())
+            json.asConverterFactory(
+                "application/json".toMediaType()
+            )
         )
         .build()
 
-    private val patientApi: PatientApi =
+    private val patientApi =
         retrofit.create(PatientApi::class.java)
 
-    val patientRepository = PatientRepository(patientApi, json)
+    private val consultationApi =
+        retrofit.create(ConsultationApi::class.java)
+
+    val patientRepository =
+        PatientRepository(patientApi, json)
+
+    val consultationRepository =
+        ConsultationRepository(consultationApi, json)
 }
